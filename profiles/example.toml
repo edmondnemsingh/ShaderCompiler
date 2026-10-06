@@ -1,0 +1,35 @@
+# Example shaderprep game profile. `shaderprep install` writes one of these to
+# <game exe folder>\shaderprep\profile.toml; edit it there. Every key is optional.
+
+[game]
+name = "Example Game"
+exe = "Binaries/Win64/ExampleGame-Win64-Shipping.exe"   # relative to the game folder
+engine = "unreal"                                        # informational
+
+[mode]
+# auto: full mode, unless anti-cheat is detected -> safe mode (never touches the game).
+# full: load the proxy DLL. On an anti-cheat game this also needs accept_anticheat_risk = true.
+# safe: only pre-compile out of process before the game starts.
+mode = "auto"
+# Full mode on an anti-cheat game loads a DLL into it. The game may refuse to start, or worse.
+accept_anticheat_risk = false
+
+[warm]
+block_at_boot = false   # hold the game at startup until everything known is compiled
+block_timeout_s = 900
+threads = 0             # 0 = one less than the number of CPU threads
+
+[record]
+enabled = true
+slow_ms = 2.0           # creations slower than this are logged as stutter
+
+[harvest]
+memory_scan = true
+scan_delays_s = [15, 45, 120, 300]   # seconds after the device is created
+extra_paths = []                     # extra folders (relative to the game folder) to scan on install
+
+[infer]
+max_root_sigs_per_cs = 8
+max_vs_per_ps = 4
+max_templates_per_pair = 4
+max_candidates = 200000

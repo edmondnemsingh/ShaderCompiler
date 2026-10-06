@@ -12,7 +12,6 @@
 namespace sp {
 
 namespace {
-constexpr size_t kChunk = 32u << 20;
 
 // Header-only check used to decide whether a candidate is merely cut off by the buffer end.
 size_t declared_size(const uint8_t* p, size_t avail) {
@@ -69,34 +68,46 @@ size_t Harvester::scan_buffer(const uint8_t* p, size_t n) {
     return firstTruncated;
 }
 
+void Harvester::scan_stream(uint64_t size, const ReadFn& read, size_t chunkSize) {
+    if (buf_.size() < chunkSize) buf_.resize(chunkSize);
+    size_t window = chunkSize;
+    uint64_t off = 0;
+    while (off < size) {
+        size_t want = static_cast<size_t>(std::min<uint64_t>(window, size - off));
+        size_t got = read(off, buf_.data(), want);
+        if (got == 0) break;
+        size_t resume = scan_buffer(buf_.data(), got);
+        if (off + got >= size) break;  // end of stream
+        if (resume == 0) {
+            // A container larger than the window starts right here: widen the window to fit it.
+            size_t need = declared_size(buf_.data(), got);
+            if (need > window) {
+                if (buf_.size() < need) buf_.resize(need);
+                window = need;
+                continue;
+            }
+            off += 1;
+            continue;
+        }
+        // Resume at a truncated container header so it is seen whole next time; otherwise overlap
+        // 3 bytes so a magic split across the boundary is still found.
+        off += std::max<size_t>(std::min(resume, got - 3), 1);
+        window = chunkSize;
+    }
+}
+
 bool Harvester::scan_file(const std::string& path) {
     std::ifstream f(u8_path(path), std::ios::binary);
     if (!f) return false;
     ++stats_.files;
-    Bytes buf(kChunk);
-    uint64_t fileOff = 0;
-    for (;;) {
+    f.seekg(0, std::ios::end);
+    uint64_t size = static_cast<uint64_t>(f.tellg());
+    scan_stream(size, [&](uint64_t off, uint8_t* dst, size_t n) -> size_t {
         f.clear();
-        f.seekg(static_cast<std::streamoff>(fileOff));
-        f.read(reinterpret_cast<char*>(buf.data()), static_cast<std::streamsize>(buf.size()));
-        size_t got = static_cast<size_t>(f.gcount());
-        if (got == 0) break;
-        size_t resume = scan_buffer(buf.data(), got);
-        if (got < buf.size()) break;  // reached EOF
-        // Resume at a truncated container header so it is seen whole in the next chunk, but always
-        // make progress; overlap 3 bytes so a magic split across chunks is still found.
-        size_t advance = std::max<size_t>(std::min(resume, got - 3), 1);
-        if (resume < got && resume == 0) {
-            // A single container larger than the chunk: grow the buffer to fit it.
-            size_t need = declared_size(buf.data(), got);
-            if (need > buf.size()) {
-                buf.resize(need);
-                continue;
-            }
-            advance = 1;
-        }
-        fileOff += advance;
-    }
+        f.seekg(static_cast<std::streamoff>(off));
+        f.read(reinterpret_cast<char*>(dst), static_cast<std::streamsize>(n));
+        return static_cast<size_t>(f.gcount());
+    });
     return true;
 }
 
@@ -108,6 +119,12 @@ void Harvester::scan_directory(const std::string& dir, const DiskScanOptions& op
     for (auto it = fs::recursive_directory_iterator(u8_path(dir), fs::directory_options::skip_permission_denied, ec);
          it != fs::recursive_directory_iterator(); it.increment(ec)) {
         if (ec) break;
+        if (it->is_directory(ec)) {
+            std::string name = path_u8(it->path().filename());
+            if (std::find(opts.skipDirectories.begin(), opts.skipDirectories.end(), name) != opts.skipDirectories.end())
+                it.disable_recursion_pending();
+            continue;
+        }
         if (!it->is_regular_file(ec)) continue;
         std::string ext = path_u8(it->path().extension());
         std::transform(ext.begin(), ext.end(), ext.begin(),

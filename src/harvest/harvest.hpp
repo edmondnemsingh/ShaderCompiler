@@ -28,6 +28,8 @@ struct DiskScanOptions {
         ".mp4", ".webm", ".bk2", ".bik", ".usm", ".wem", ".bnk", ".ogg", ".wav", ".mp3",
         ".opus", ".avi", ".mkv", ".wmv", ".png", ".jpg", ".jpeg",
     };
+    // Folder names never descended into (our own data folder holds copies of found shaders).
+    std::vector<std::string> skipDirectories = {"shaderprep"};
     std::function<void(const std::string& file, uint64_t done, uint64_t total)> progress;
 };
 
@@ -38,6 +40,11 @@ public:
     // Scans `n` bytes. Containers that straddle the end are not reported; returns the offset of the
     // first such truncated header (or n), so streaming callers can resume from there.
     size_t scan_buffer(const uint8_t* p, size_t n);
+
+    // Streams `size` bytes through `read` (offset, dst, n) -> bytes read, in large chunks, handling
+    // containers that straddle chunk boundaries. Used for files and process memory regions.
+    using ReadFn = std::function<size_t(uint64_t offset, uint8_t* dst, size_t n)>;
+    void scan_stream(uint64_t size, const ReadFn& read, size_t chunkSize = 32u << 20);
 
     bool scan_file(const std::string& path);
     void scan_directory(const std::string& dir, const DiskScanOptions& opts = {});
@@ -50,6 +57,7 @@ private:
     PsoDb& db_;
     BlobOrigin origin_;
     HarvestStats stats_;
+    Bytes buf_;
     std::unordered_set<uint64_t> seen_;
 };
 

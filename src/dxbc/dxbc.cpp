@@ -87,9 +87,9 @@ bool parse_signature(const uint8_t* part, size_t size, uint32_t fcc, std::vector
 }
 
 void put_u32(Bytes& b, uint32_t v) {
-    uint8_t t[4];
-    std::memcpy(t, &v, 4);
-    b.insert(b.end(), t, t + 4);
+    size_t n = b.size();
+    b.resize(n + 4);
+    std::memcpy(b.data() + n, &v, 4);
 }
 
 }  // namespace

@@ -1,0 +1,10 @@
+LIBRARY d3d12
+EXPORTS
+    D3D12CreateDevice = Proxy_D3D12CreateDevice
+    D3D12GetDebugInterface = Proxy_D3D12GetDebugInterface
+    D3D12GetInterface = Proxy_D3D12GetInterface
+    D3D12CreateRootSignatureDeserializer = Proxy_D3D12CreateRootSignatureDeserializer
+    D3D12CreateVersionedRootSignatureDeserializer = Proxy_D3D12CreateVersionedRootSignatureDeserializer
+    D3D12EnableExperimentalFeatures = Proxy_D3D12EnableExperimentalFeatures
+    D3D12SerializeRootSignature = Proxy_D3D12SerializeRootSignature
+    D3D12SerializeVersionedRootSignature = Proxy_D3D12SerializeVersionedRootSignature

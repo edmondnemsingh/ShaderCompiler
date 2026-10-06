@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  linux:
+    name: Linux (portable core + unit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Unit tests
+        run: ./build/shaderprep_tests
+
+  mingw:
+    name: MinGW cross build (Windows targets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MinGW
+        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64-posix ninja-build
+      - name: Configure
+        run: cmake -S . -B build-win -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build-win
+
+  windows:
+    name: Windows MSVC (build, unit tests, proxy smoke test on WARP)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -A x64
+      - name: Build
+        run: cmake --build build --config Release --parallel
+      - name: Unit tests
+        run: build\Release\shaderprep_tests.exe
+      - name: Proxy smoke test
+        shell: pwsh
+        env:
+          SHADERPREP_ALLOW_SOFTWARE_ADAPTER: "1"
+        run: |
+          New-Item -ItemType Directory -Force smoke | Out-Null
+          Copy-Item build\Release\d3d12.dll, build\Release\hook_smoke.exe smoke\
+          Push-Location smoke
+          foreach ($m in "record", "check", "warm") {
+            .\hook_smoke.exe $m
+            if ($LASTEXITCODE -ne 0) { Get-Content shaderprep\log.txt -ErrorAction SilentlyContinue; exit 1 }
+          }
+          Get-Content shaderprep\log.txt
+          Pop-Location
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item build\Release\shaderprep.exe, build\Release\shaderprep-warm.exe, build\Release\d3d12.dll, README.md dist\
+          Copy-Item -Recurse profiles dist\profiles
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shaderprep-windows-x64
+          path: dist

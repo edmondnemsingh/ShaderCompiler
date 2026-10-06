@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
-project(shaderprep LANGUAGES CXX)
+project(shaderprep LANGUAGES C CXX)
 
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -28,6 +29,10 @@ add_library(shaderprep_core STATIC
 )
 target_include_directories(shaderprep_core PUBLIC src)
 target_include_directories(shaderprep_core PRIVATE third_party/xxhash)
+if(MINGW)
+  # C99/POSIX printf formats (%zu, %llu) instead of the old msvcrt ones.
+  target_compile_definitions(shaderprep_core PUBLIC __USE_MINGW_ANSI_STDIO=1)
+endif()
 if(WIN32 AND NOT MSVC)
   # MinGW: link the C++ runtime statically so the proxy DLL has no extra dependencies.
   target_link_options(shaderprep_core INTERFACE -static -static-libgcc -static-libstdc++)
@@ -52,9 +57,15 @@ if(WIN32)
     src/win/warm.cpp
     src/win/memscan.cpp
     src/win/log.cpp
+    src/win/vtable_check.c
   )
-  target_link_libraries(shaderprep_win PUBLIC shaderprep_core DirectX-Headers dxgi)
-  target_compile_definitions(shaderprep_win PUBLIC UNICODE _UNICODE)
+  # Note: never link d3d12.lib into anything the proxy DLL uses - it would import itself.
+  target_link_libraries(shaderprep_win PUBLIC shaderprep_core DirectX-Headers DirectX-Guids dxguid)
+  target_compile_definitions(shaderprep_win PUBLIC UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+  if(MINGW)
+    # MinGW's rpcndr.h is older than the version DirectX-Headers asks for; the parts we use work.
+    target_compile_definitions(shaderprep_win PUBLIC __REQUIRED_RPCNDR_H_VERSION__=475)
+  endif()
 
   # Named d3d12.dll so a game loads it from its own folder; forwards to System32\d3d12.dll.
   add_library(shaderprep_hook SHARED
@@ -66,7 +77,7 @@ if(WIN32)
   set_target_properties(shaderprep_hook PROPERTIES OUTPUT_NAME d3d12 PREFIX "")
 
   add_executable(shaderprep-warm src/helper/main.cpp)
-  target_link_libraries(shaderprep-warm PRIVATE shaderprep_win)
+  target_link_libraries(shaderprep-warm PRIVATE shaderprep_win d3d12 dxgi)
 endif()
 
 if(SHADERPREP_BUILD_TESTS)
@@ -81,5 +92,11 @@ if(SHADERPREP_BUILD_TESTS)
   )
   target_link_libraries(shaderprep_tests PRIVATE shaderprep_core)
   target_include_directories(shaderprep_tests PRIVATE tests)
+  target_compile_definitions(shaderprep_tests PRIVATE SHADERPREP_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
   add_test(NAME shaderprep_tests COMMAND shaderprep_tests)
+  if(WIN32)
+    # Needs a D3D12 device; run next to d3d12.dll (see .github/workflows/ci.yml).
+    add_executable(hook_smoke tests/win/hook_smoke.cpp)
+    target_link_libraries(hook_smoke PRIVATE shaderprep_win)
+  endif()
 endif()

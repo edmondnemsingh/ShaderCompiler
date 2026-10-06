@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 
@@ -95,4 +96,15 @@ TEST_CASE("profile: engine guess") {
     std::ofstream(dir / "Game" / "Content" / "Paks" / "Game-Windows.utoc") << "x";
     CHECK(guess_engine(dir.string()) == "unreal");
     fs::remove_all(dir);
+}
+
+TEST_CASE("profile: shipped example profile parses") {
+    Profile p;
+    std::string err;
+    bool ok = load_profile(std::string(SHADERPREP_SOURCE_DIR) + "/profiles/example.toml", p, &err);
+    if (!ok) std::fprintf(stderr, "  %s\n", err.c_str());
+    REQUIRE(ok);
+    CHECK(p.name == "Example Game");
+    CHECK(p.mode == Mode::Auto);
+    CHECK(p.scanDelaysS.size() == 4);
 }

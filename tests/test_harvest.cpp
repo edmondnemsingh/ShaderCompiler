@@ -74,6 +74,11 @@ TEST_CASE("harvest: directory scan finds shaders across files and chunk boundari
         f.write(reinterpret_cast<const char*>(cs.data()), cs.size());
     }
     {
+        fs::create_directories(dir / "shaderprep");  // our own data folder is never scanned
+        std::ofstream f(dir / "shaderprep" / "disk.psodb", std::ios::binary);
+        f.write(reinterpret_cast<const char*>(cs.data()), cs.size());
+    }
+    {
         std::ofstream f(dir / "movie.bk2", std::ios::binary);  // skipped by extension
         f.write(reinterpret_cast<const char*>(cs.data()), cs.size());
     }
