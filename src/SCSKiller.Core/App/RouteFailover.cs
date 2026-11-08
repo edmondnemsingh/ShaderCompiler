@@ -113,6 +113,9 @@ public sealed class RouteFailover : DelegatingHandler
         var uri = request.RequestUri!;
         if (Uri.Compare(uri, Primary, UriComponents.SchemeAndServer, UriFormat.Unescaped, StringComparison.OrdinalIgnoreCase) != 0)
             return await SendWithAgent(request, ct).ConfigureAwait(false);
+        // unofficial fork: SCSKiller's servers are never contacted unless SCSKILLER_API names a backend
+        if (!Fork.ServicesEnabled && ReferenceEquals(Routes, DefaultRoutes))
+            throw new ApiUnreachableException(new HttpRequestException(Fork.ServicesNote));
         var path = uri.PathAndQuery.TrimStart('/');
         var idempotent = request.Method == HttpMethod.Get || request.Method == HttpMethod.Head;
         var first = First();

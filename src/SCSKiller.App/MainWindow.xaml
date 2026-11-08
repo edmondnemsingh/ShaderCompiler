@@ -16,7 +16,7 @@
         <Border x:Name="ShotBackground" Grid.RowSpan="2" Visibility="Collapsed"
                 Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" />
 
-        <TitleBar x:Name="AppTitleBar" Title="SCSKiller" Subtitle="Shader Compilation Stutter Killer"
+        <TitleBar x:Name="AppTitleBar" Title="ShaderCompiler" Subtitle="Unofficial fork of SCSKiller"
                   IsBackButtonVisible="False"
                   IsPaneToggleButtonVisible="True" PaneToggleRequested="OnPaneToggle">
             <TitleBar.IconSource>

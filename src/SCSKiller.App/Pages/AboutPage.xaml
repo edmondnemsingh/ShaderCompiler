@@ -17,8 +17,8 @@
                     </Grid.ColumnDefinitions>
                     <FontIcon Glyph="&#xE945;" FontSize="36" VerticalAlignment="Top" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                     <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock Text="SCSKiller" Style="{StaticResource Section}" FontSize="20" />
-                        <TextBlock Text="Shader Compilation Stutter Killer" Style="{StaticResource Secondary}" />
+                        <TextBlock Text="ShaderCompiler" Style="{StaticResource Section}" FontSize="20" />
+                        <TextBlock Text="Unofficial fork of SCSKiller (Shader Compilation Stutter Killer). Not made or supported by the SCSKiller authors." Style="{StaticResource Secondary}" TextWrapping="Wrap" />
                         <TextBlock Text="{x:Bind Vm.Version, Mode=OneWay}" Style="{StaticResource Caption}" IsTextSelectionEnabled="True" />
                         <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4,0,0" Visibility="{x:Bind Vm.ShowsCheck}">
                             <Button Content="Check for updates" Click="OnCheckForUpdates" IsEnabled="{x:Bind Vm.CanCheck, Mode=OneWay}" />

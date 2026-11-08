@@ -38,8 +38,8 @@
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
                     <TextBlock Classes="Icon" Text="{x:Static ui:Glyphs.Bolt}" FontSize="36" VerticalAlignment="Top" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
                     <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock Text="SCSKiller" Classes="Section" FontSize="{DynamicResource TextSize.20}" />
-                        <TextBlock Text="Shader Compilation Stutter Killer" Classes="Secondary" />
+                        <TextBlock Text="ShaderCompiler" Classes="Section" FontSize="{DynamicResource TextSize.20}" />
+                        <TextBlock Text="Unofficial fork of SCSKiller (Shader Compilation Stutter Killer). Not made or supported by the SCSKiller authors." Classes="Secondary" TextWrapping="Wrap" />
                         <SelectableTextBlock Text="{Binding Version}" Classes="Caption" TextWrapping="Wrap" />
                         <WrapPanel ItemSpacing="12" Margin="0,4,0,0" IsVisible="{Binding ShowsCheck}">
                             <Button Content="Check for updates" Click="OnCheckForUpdates" IsEnabled="{Binding CanCheck}" />

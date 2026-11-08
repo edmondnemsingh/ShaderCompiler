@@ -311,7 +311,7 @@ public static class AutoInstall
 /// strands every installed build's stable updates.</summary>
 public static class UpdateFeeds
 {
-    public const string GhRepo = "BlueHeisenberg/SCSKiller";
+    public const string GhRepo = Fork.Repo;   // unofficial fork; upstream: BlueHeisenberg/SCSKiller
     public static readonly Uri Packages = new("https://dl.scskiller.io/");   // alpha/beta/internal packages: VPS route only
     /// <summary>The app's background check; the Library's refresh and About's "Check for updates" check in between.</summary>
     public static readonly TimeSpan CheckEvery = TimeSpan.FromHours(1);
@@ -406,7 +406,7 @@ public static class UpdateFeeds
     /// the source zip next to the package on the edge (with the access token); none for internal and dev builds.</summary>
     public static Uri? Source(AppVersion v) => v.Channel switch
     {
-        UpdateChannels.Stable => new($"https://github.com/{GhRepo}/tree/v{v}"),
+        UpdateChannels.Stable => new($"https://github.com/{GhRepo}"),   // the fork's source; it has no release tags
         UpdateChannels.Alpha or UpdateChannels.Beta => new(RouteFailover.Default.Primary, $"v1/updates/{v.Channel}/source-{v}.zip"),
         _ => null,
     };

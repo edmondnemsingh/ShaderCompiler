@@ -1,3 +1,19 @@
+> [!IMPORTANT]
+> **This is ShaderCompiler, an unofficial fork of [SCSKiller](https://github.com/BlueHeisenberg/SCSKiller).**
+> It isn't made, checked or supported by the SCSKiller authors. Report problems with this fork
+> [here](https://github.com/edmondnemsingh/ShaderCompiler/issues), not to SCSKiller. For the official app, use
+> [SCSKiller's releases](https://github.com/BlueHeisenberg/SCSKiller/releases).
+>
+> What's different in this fork:
+> - SCSKiller's online services (community database, Patreon sign-in, sharing, beta channels) are switched off: a fork
+>   can't use SCSKiller's servers. Set `SCSKILLER_API` to a backend of your own to turn them back on.
+> - The app never updates itself, because SCSKiller's update feeds are signed with keys only its authors hold.
+> - The title bar and About page say ShaderCompiler. Code namespaces keep the SCSKiller name so upstream changes merge cleanly.
+> - The anti-cheat rules are unchanged from SCSKiller.
+>
+> Everything below is SCSKiller's own README, kept as it is. SCSKiller's copyright notices and licence
+> (GPL-3.0-or-later with the [additional permission](LICENSE-EXCEPTION.txt)) apply to this fork too.
+
 <p align="center">
   <img width="128" src=".github/assets/logo.png" alt="SCSKiller logo">
 </p>

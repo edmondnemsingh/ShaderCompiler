@@ -24,7 +24,9 @@ public static class Updater
     // no static here may build an UpdateManager: one needs Velopack's locator, which UpdateHooks.Run sets
     static string DataDir => UpdateHooks.DataDir;   // read at each use, as UpdateHooks.Log's is, so a record and its log share a folder
     // tests replace these: who updates this copy, the feed, and Velopack's locator (null: the one UpdateHooks.Run sets)
-    internal static Lazy<Installation> Detected = new(() => Installation.Detect(Installation.ThisElsewhere, OperatingSystem.IsWindows(),
+    // unofficial fork: upstream's feeds are signed with keys only SCSKiller holds, so no copy of the fork updates itself
+    internal static Lazy<Installation> Detected = new(() => !Fork.ServicesEnabled ? new(InstallKind.NotInstalled)
+        : Installation.Detect(Installation.ThisElsewhere, OperatingSystem.IsWindows(),
         () => Manager(UpdateChannels.Stable, false).IsInstalled), LazyThreadSafetyMode.PublicationOnly);
     internal static Func<IUpdateSource> Feed = () => new SignedFeedSource();
     internal static IVelopackLocator? TestLocator;
