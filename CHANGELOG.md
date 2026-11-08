@@ -4,6 +4,12 @@ All notable changes to the SCSKiller app and command line. Versions follow [Sema
 
 ## [Unreleased]
 
+**Fixed**
+
+- A Steam manifest that ends in blank bytes (a write cut short by a crash or power loss) or starts with a byte-order mark
+  no longer stops the recorder for every game with "VAC: a Steam manifest is malformed". Steam reads these files, and
+  now so does the recorder; a manifest that is damaged anywhere else is still refused.
+
 ## [1.4.6] - 2026-11-06
 
 **Improved**

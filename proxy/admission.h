@@ -267,8 +267,14 @@ static bool vdf_pairs(const std::string& t, size_t& i, std::vector<Vdf>& out, in
     }
 }
 
-// The file's one top-level object, named root (any case of A-Z): false when the text isn't that.
-static bool vdf_root(const std::string& t, const char* root, Vdf& top) {
+// The file's one top-level object, named root (any case of A-Z): false when the text isn't that. A UTF-8 byte-order
+// mark before it and NUL bytes after it are ignored: a manifest whose write was cut short by a crash or power loss ends
+// in NUL padding, Steam still reads it, and refusing it refused every game on the PC (any manifest that can't be parsed
+// refuses, admit.h). NULs anywhere else still make the text malformed.
+static bool vdf_root(const std::string& text, const char* root, Vdf& top) {
+    size_t b = text.size() >= 3 && !text.compare(0, 3, "\xEF\xBB\xBF") ? 3 : 0, e = text.size();
+    while (e > b && !text[e - 1]) --e;
+    const std::string t = text.substr(b, e - b);
     std::vector<Vdf> all;
     size_t i = 0;
     if (!vdf_pairs(t, i, all, 0) || all.size() != 1 || !all[0].object || lower_az(all[0].key) != root) return false;
